@@ -1,0 +1,142 @@
+/* Center container */
+.container {
+  display: flex;
+  margin-left: 80px ;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #ffeef2;
+  text-align: center;
+}
+
+/* Input fields in a row */
+.input-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+/* Individual input box styling */
+.input-box {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border: none;
+}
+
+/* Labels above the inputs */
+label {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #5a0f34;
+}
+
+/* Input fields */
+input {
+  width: 300px;
+  padding: 8px;
+  border: 2px solid #5a0f34;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* Plus Button */
+.add-button {
+  background-color: #5a0f34;
+  margin-top: 2%;
+  color: white;
+  border: none;
+  width: 5%;
+  padding: 12px;
+  border-radius: 25%;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #720f44;
+}
+
+/* Schedule List Centering */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #ffeef2;
+  text-align: center;
+}
+
+/* Center and align session list */
+.session-list {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Two columns */
+  gap: 20px;
+  width: fit-content; /* Prevents stretching */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Center individual session items */
+.session-item {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  width: 280px; /* Ensure equal width */
+}
+
+
+.session-item p {
+  margin: 5px 0;
+}
+
+.delete-button {
+  border: none;
+  background-color: transparent;
+  color: #5a0f34;
+  font-size: 15px;
+}
+
+/* Schedule Button */
+.schedule-button {
+  background-color: #5a0f34;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.schedule-button:hover {
+  background-color: #720f44;
+}
+
+.duration-box .duration-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.duration-inputs input {
+  width: 80px;
+  padding: 8px;
+  border: 2px solid #600030;
+  border-radius: 8px;
+  outline: none;
+  text-align: center;
+}
+
+.duration-inputs span {
+  font-weight: bold;
+  color: #600030;
+}

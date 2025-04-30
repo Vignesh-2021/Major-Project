@@ -1,0 +1,40 @@
+/* HomePage.css */
+.homepage {
+  background-image: url("Background.jpg");
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: cover;
+  height: 100vh; /* Ensures full viewport coverage */
+  display: flex;
+  align-items: center; /* Centers vertically */
+  justify-content: center; /* Centers horizontally */
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-size: 5rem;
+  color: #5f093d;
+  font-weight: bold;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  font-family: "Grey Qo", cursive;
+  font-style: normal;
+  margin: 10px 0;
+}
+
+.schedule-btn {
+  background-color: #5f093d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.schedule-btn:hover {
+  background-color: #8a125a;
+}

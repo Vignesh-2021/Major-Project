@@ -1,0 +1,154 @@
+/* Navbar Styling */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 15px 30px;
+  color: #7C5CFC;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.navbar .menu-icon {
+  font-size: 20px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.navbar .logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7C5CFC;
+}
+
+.navbar .signup-btn {
+  padding: 10px 20px;
+  width: max-content;
+  background-color: #7C5CFC;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  margin-right: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.navbar .signup-btn:hover {
+  background-color: #efd3b5;
+  color: #5d3ae9;
+}
+
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 80px;
+  display: flex;
+  overflow-x: hidden;
+  margin-top: 50px;
+  flex-direction: column;
+  background: #ffffff;
+  padding: 25px 20px;
+  transition: all 0.4s ease;
+  justify-content: space-between;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar:hover {
+  width: 260px;
+}
+
+/* Sidebar links container */
+.sidebar-links {
+  list-style: none;
+  margin-top: 40px;
+  height: 80%;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.sidebar-links::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-links li a {
+  display: flex;
+  align-items: center;
+  gap: 0 20px;
+  color: #7C5CFC;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 15px 10px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.sidebar-links li a:hover {
+  color: #ffffff;
+  background: #7C5CFC;
+  border-radius: 4px;
+}
+
+/* Bottom Sidebar Section */
+.bottom-sidebar {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+  margin-bottom: 40px; 
+  list-style: none; 
+}
+
+.bottom-links {
+  margin: 10px 0;
+  list-style-type:none;
+  overflow-x: hidden;
+
+}
+
+.bottom-sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 0 20px;
+  color: #7C5CFC;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 15px 10px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.bottom-sidebar li a:hover {
+  color: #ffffff;
+  background: #7C5CFC;
+  border-radius: 4px;
+}
+
+.user-greeting {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.photo-img {
+  size: 6;
+  border-radius: 50px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.username {
+  font-weight: bold;
+  color: #7C5CFC;
+}
