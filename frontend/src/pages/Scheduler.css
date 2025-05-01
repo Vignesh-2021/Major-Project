@@ -6,10 +6,13 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #ffeef2;
+  background-color: #f2f5ff;
   text-align: center;
 }
 
+.title{
+  color: #7b2cbf;
+}
 /* Input fields in a row */
 .input-container {
   display: flex;
@@ -32,21 +35,21 @@ label {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 5px;
-  color: #5a0f34;
+  color: #7b2cbf;
 }
 
 /* Input fields */
 input {
   width: 300px;
   padding: 8px;
-  border: 2px solid #5a0f34;
+  border: 2px solid #7b2cbf;
   border-radius: 5px;
   font-size: 14px;
 }
 
 /* Plus Button */
 .add-button {
-  background-color: #5a0f34;
+  background-color: #7b2cbf;
   margin-top: 2%;
   color: white;
   border: none;
@@ -58,7 +61,7 @@ input {
 }
 
 .add-button:hover {
-  background-color: #720f44;
+  background-color: #7b2cbf;
 }
 
 /* Schedule List Centering */
@@ -68,7 +71,7 @@ input {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #ffeef2;
+  background-color: #f2f5ff ;
   text-align: center;
 }
 
@@ -101,13 +104,13 @@ input {
 .delete-button {
   border: none;
   background-color: transparent;
-  color: #5a0f34;
+  color: #7b2cbf;
   font-size: 15px;
 }
 
 /* Schedule Button */
 .schedule-button {
-  background-color: #5a0f34;
+  background-color: #7b2cbf;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -118,7 +121,7 @@ input {
 }
 
 .schedule-button:hover {
-  background-color: #720f44;
+  background-color: #7b2cbf;
 }
 
 .duration-box .duration-inputs {
@@ -130,7 +133,7 @@ input {
 .duration-inputs input {
   width: 80px;
   padding: 8px;
-  border: 2px solid #600030;
+  border: 2px solid #7b2cbf;
   border-radius: 8px;
   outline: none;
   text-align: center;
@@ -138,5 +141,5 @@ input {
 
 .duration-inputs span {
   font-weight: bold;
-  color: #600030;
+  color: #7b2cbf;
 }

@@ -5,7 +5,7 @@
   align-items: center;
   background-color: #ffffff;
   padding: 15px 30px;
-  color: #7C5CFC;
+  color: #7b2cbf;
   position: fixed;
   top: 0;
   left: 0;
@@ -23,13 +23,13 @@
 .navbar .logo {
   font-size: 24px;
   font-weight: bold;
-  color: #7C5CFC;
+  color: #7b2cbf;
 }
 
 .navbar .signup-btn {
   padding: 10px 20px;
   width: max-content;
-  background-color: #7C5CFC;
+  background-color: #7b2cbf;
   color: white;
   border: none;
   border-radius: 5px;
@@ -83,7 +83,7 @@
   display: flex;
   align-items: center;
   gap: 0 20px;
-  color: #7C5CFC;
+  color: #7b2cbf;
   font-weight: 500;
   white-space: nowrap;
   padding: 15px 10px;
@@ -93,7 +93,7 @@
 
 .sidebar-links li a:hover {
   color: #ffffff;
-  background: #7C5CFC;
+  background: #7b2cbf;
   border-radius: 4px;
 }
 
@@ -117,7 +117,7 @@
   display: flex;
   align-items: center;
   gap: 0 20px;
-  color: #7C5CFC;
+  color: #7b2cbf;
   font-weight: 500;
   white-space: nowrap;
   padding: 15px 10px;
@@ -127,7 +127,7 @@
 
 .bottom-sidebar li a:hover {
   color: #ffffff;
-  background: #7C5CFC;
+  background: #7b2cbf;
   border-radius: 4px;
 }
 
@@ -150,5 +150,5 @@
 
 .username {
   font-weight: bold;
-  color: #7C5CFC;
+  color: #7b2cbf;
 }

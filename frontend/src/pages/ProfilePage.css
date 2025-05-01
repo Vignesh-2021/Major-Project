@@ -11,13 +11,13 @@
 
 .dashboard-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f2f5ff;
   margin-top: 15vh;
   padding: 0 5vw;
 }
 
 body.dashboard-page {
-  background-color: #f5f5f5;
+  background-color: #f2f5ff;
 }
 
 /* Profile Section 
