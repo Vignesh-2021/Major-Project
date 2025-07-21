@@ -14,14 +14,12 @@ const Scheduler = () => {
   const MAX_HOURS_PER_DAY = 14;
   const today = new Date().toISOString().split("T")[0];
 
-  // Convert hours and minutes to total minutes
   const toTotalMinutes = (hours, minutes) => {
     const h = Number(hours) || 0;
     const m = Number(minutes) || 0;
     return h * 60 + m;
   };
 
-  // Convert total minutes to display format (e.g., 150 mins → "2 hrs 30 mins")
   const formatDuration = (totalMinutes) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -34,10 +32,10 @@ const Scheduler = () => {
   const getTotalScheduledMinutesForDate = (targetDate) => {
     try {
       const stored = JSON.parse(localStorage.getItem("scheduledSessions")) || [];
-      const newOnes = sessions.filter((s) => s.date === targetDate);
+      const newOnes = sessions.filter((s) => s.date === targetDate && !s.isCombined);
       const combined = [...stored, ...newOnes];
       return combined
-        .filter((s) => s.date === targetDate)
+        .filter((s) => s.date === targetDate && !s.isCombined)
         .reduce((total, s) => total + Number(s.durationMinutes), 0);
     } catch (e) {
       console.error("Error accessing localStorage:", e);
@@ -96,7 +94,8 @@ const Scheduler = () => {
       id: generateUniqueId(topic),
       topic: topic.trim(),
       date,
-      durationMinutes, // Store duration in minutes
+      durationMinutes,
+      isCombined: false, // Individual session
     };
     setSessions([...sessions, newSession]);
     handleReset();
@@ -123,9 +122,40 @@ const Scheduler = () => {
     }
 
     try {
+      // Get existing sessions from localStorage
       const existing = JSON.parse(localStorage.getItem("scheduledSessions")) || [];
-      const combined = [...existing, ...sessions];
-      localStorage.setItem("scheduledSessions", JSON.stringify(combined));
+
+      // Group sessions by date to create combined sessions
+      const sessionsByDate = sessions.reduce((acc, session) => {
+        if (!acc[session.date]) {
+          acc[session.date] = [];
+        }
+        acc[session.date].push(session);
+        return acc;
+      }, {});
+
+      // Create combined sessions
+      const combinedSessions = Object.keys(sessionsByDate).map((date) => {
+        const sessionsForDate = sessionsByDate[date];
+        const totalDuration = sessionsForDate.reduce(
+          (sum, s) => sum + Number(s.durationMinutes),
+          0
+        );
+        return {
+          id: generateUniqueId(`Combined-${date}`),
+          topic: `Combined Session for ${date}`,
+          date,
+          durationMinutes: totalDuration,
+          isCombined: true,
+          combinedDate: date, // Track the date this combined session represents
+        };
+      });
+
+      // Combine individual and combined sessions
+      const allSessions = [...existing, ...sessions, ...combinedSessions];
+
+      // Save to localStorage
+      localStorage.setItem("scheduledSessions", JSON.stringify(allSessions));
       navigate("/Sessions");
     } catch (e) {
       console.error("Error saving to localStorage:", e);

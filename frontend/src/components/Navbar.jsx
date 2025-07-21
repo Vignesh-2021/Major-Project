@@ -8,11 +8,18 @@ import { logout } from "../redux/features/auth/authSlice";
 const SidebarMenu = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const [logoutUser] = useLogoutUserMutation();
+  const { user, token } = useSelector((state) => state.auth); // Added token retrieval
+  const [logoutUser, { isLoading }] = useLogoutUserMutation();
 
   const handleLogout = async (e) => {
     e.preventDefault(); // Prevent Link's default navigation behavior
+    if (!token) {
+      console.warn("No token found, clearing state and navigating...");
+      dispatch(logout());
+      navigate("/");
+      return;
+    }
+
     try {
       console.log("Attempting to log out...");
       const response = await logoutUser().unwrap();
@@ -22,6 +29,9 @@ const SidebarMenu = () => {
       navigate("/");
     } catch (error) {
       console.error("Failed to log out:", error);
+      // Clear state and navigate even if the request fails
+      dispatch(logout());
+      navigate("/");
     }
   };
 
@@ -105,7 +115,7 @@ const SidebarMenu = () => {
                 <span className="material-symbols-outlined">
                   <i className="fa-solid fa-arrow-right-from-bracket"></i>
                 </span>
-                Logout
+                {isLoading ? "Logging out..." : "Logout"}
               </Link>
             </li>
           </ul>

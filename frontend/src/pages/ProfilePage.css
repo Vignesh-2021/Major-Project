@@ -283,3 +283,94 @@ body.dashboard-page {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
+
+
+.profile-header-card {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+
+.profile-text h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.profile-text p {
+  margin: 0.25rem 0 0;
+  color: #7b2cbf;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group {
+  flex: 1;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #000000;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid #7b2cbf;
+  background-color: #fffcfc;
+  font-size: 0.95rem;
+}
+
+.form-group #width-500 {
+  width: 500px;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn.update {
+  margin-top: 1rem;
+  background-color: #7b2cbf;
+  color: white;
+}
+

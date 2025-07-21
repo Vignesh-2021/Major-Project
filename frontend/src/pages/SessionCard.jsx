@@ -39,7 +39,6 @@ const SessionCard = () => {
     }
   };
 
-  // Convert total minutes to display format (e.g., 150 mins → "2 hrs 30 mins")
   const formatDuration = (totalMinutes) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -74,8 +73,25 @@ const SessionCard = () => {
 
       if (isTimerRunning && timerData.lastUpdate) {
         elapsedTime += Math.floor((now - timerData.lastUpdate) / 1000);
-        const durationInSeconds = (session.durationMinutes || 0) * 60; // Convert minutes to seconds
+        const durationInSeconds = (session.durationMinutes || 0) * 60;
         console.log(`Checking completion - Topic: ${session.topic}, Elapsed: ${elapsedTime}, Duration: ${durationInSeconds}`);
+
+        // For combined sessions, check if any individual session for the same date is still active
+        if (session.isCombined) {
+          const individualSessions = storedSessions.filter(
+            (s) => !s.isCombined && s.date === session.combinedDate && !s.completed
+          );
+          if (individualSessions.length > 0) {
+            console.log(`Combined session ${session.topic} not completed: individual sessions still active`);
+            return {
+              ...session,
+              active: activeSession ? session.topic === activeSession.topic : false,
+              timer: elapsedTime,
+              isTimerRunning,
+            };
+          }
+        }
+
         if (elapsedTime >= durationInSeconds) {
           if (activeSession?.topic === session.topic) {
             safeSetStorage("activeSession", null);
@@ -83,7 +99,7 @@ const SessionCard = () => {
           timers[session.topic] = { elapsedTime, isRunning: false, lastUpdate: 0 };
           const completedSessions = JSON.parse(localStorage.getItem("completedSessions")) || [];
           if (!completedSessions.some((s) => s.id === session.id)) {
-            console.log(`Adding to completedSessions - Topic: ${session.topic}, ID: ${session.id}`);
+            console.log(`Adding to.completedSessions - Topic: ${session.topic}, ID: ${session.id}`);
             completedSessions.push({ ...session, completed: true, completedTime: elapsedTime });
             safeSetStorage("completedSessions", completedSessions);
             console.log("Updated completedSessions:", completedSessions);
@@ -149,8 +165,20 @@ const SessionCard = () => {
             lastUpdate: now,
           };
 
-          const durationInSeconds = (session.durationMinutes || 0) * 60; // Convert minutes to seconds
+          const durationInSeconds = (session.durationMinutes || 0) * 60;
           console.log(`Interval check - Topic: ${session.topic}, Elapsed: ${newTimer}, Duration: ${durationInSeconds}`);
+
+          // For combined sessions, check if any individual session for the same date is still active
+          if (session.isCombined) {
+            const individualSessions = prevSessions.filter(
+              (s) => !s.isCombined && s.date === session.combinedDate && !s.completed
+            );
+            if (individualSessions.length > 0) {
+              console.log(`Combined session ${session.topic} not completed: individual sessions still active`);
+              return { ...session, timer: newTimer };
+            }
+          }
+
           if (newTimer >= durationInSeconds) {
             console.log(`Session completed in interval - Topic: ${session.topic}, Timer: ${newTimer}`);
             const completedSessions = JSON.parse(localStorage.getItem("completedSessions")) || [];
@@ -242,7 +270,7 @@ const SessionCard = () => {
   const handleStopSession = (topic) => {
     const timers = JSON.parse(localStorage.getItem("sessionTimers")) || {};
     const session = sessions.find((s) => s.topic === topic);
-    const durationInSeconds = (session.durationMinutes || 0) * 60; // Convert minutes to seconds
+    const durationInSeconds = (session.durationMinutes || 0) * 60;
     const updatedSessions = sessions.map((session) => {
       if (session.topic === topic) {
         timers[session.topic] = {
@@ -251,6 +279,22 @@ const SessionCard = () => {
           lastUpdate: 0,
         };
         console.log(`Stopping session - Topic: ${topic}, Elapsed: ${session.timer}, Duration: ${durationInSeconds}`);
+
+        // For combined sessions, check if any individual session for the same date is still active
+        if (session.isCombined) {
+          const individualSessions = sessions.filter(
+            (s) => !s.isCombined && s.date === session.combinedDate && !s.completed
+          );
+          if (individualSessions.length > 0) {
+            console.log(`Combined session ${session.topic} not completed: individual sessions still active`);
+            return {
+              ...session,
+              active: false,
+              isTimerRunning: false,
+            };
+          }
+        }
+
         if (session.timer >= durationInSeconds) {
           console.log(`Session ${topic} qualifies for completion on stop`);
           const completedSessions = JSON.parse(localStorage.getItem("completedSessions")) || [];
@@ -285,7 +329,34 @@ const SessionCard = () => {
     if (!window.confirm("Are you sure you want to delete this session?")) return;
 
     const session = sessions.find((s) => s.id === sessionId);
-    const updatedSessions = sessions.filter((s) => s.id !== sessionId);
+    let updatedSessions = sessions.filter((s) => s.id !== sessionId);
+
+    // If deleting a combined session, do not affect individual sessions
+    // If deleting an individual session, update or remove the combined session for that date
+    if (session && !session.isCombined) {
+      const date = session.date;
+      const remainingSessions = updatedSessions.filter(
+        (s) => !s.isCombined && s.date === date && !s.completed
+      );
+      if (remainingSessions.length > 0) {
+        // Update the combined session for this date
+        const totalDuration = remainingSessions.reduce(
+          (sum, s) => sum + Number(s.durationMinutes),
+          0
+        );
+        updatedSessions = updatedSessions.map((s) =>
+          s.isCombined && s.combinedDate === date
+            ? { ...s, durationMinutes: totalDuration }
+            : s
+        );
+      } else {
+        // No individual sessions left for this date, remove the combined session
+        updatedSessions = updatedSessions.filter(
+          (s) => !(s.isCombined && s.combinedDate === date)
+        );
+      }
+    }
+
     setSessions(updatedSessions);
     safeSetStorage("scheduledSessions", updatedSessions);
 
@@ -307,7 +378,12 @@ const SessionCard = () => {
           <p className="no-sessions">No sessions scheduled</p>
         ) : (
           sessions.map((session) => (
-            <div key={session.id} className={`session-card ${session.active ? "active" : ""}`}>
+            <div
+              key={session.id}
+              className={`session-card ${session.active ? "active" : ""} ${
+                session.isCombined ? "combined-session" : ""
+              }`}
+            >
               <div className="session-info">
                 <div>
                   <strong>Session Name:</strong>

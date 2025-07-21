@@ -1,31 +1,41 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit";
 
-const loadUserFromLocalStorage = () => {
+const loadAuthFromLocalStorage = () => {
     try {
-        const serializedState = localStorage.getItem("user");
-        return serializedState ? JSON.parse(serializedState) : null;
+        const serializedUser = localStorage.getItem("user");
+        const serializedToken = localStorage.getItem("token");
+        return {
+            user: serializedUser ? JSON.parse(serializedUser) : null,
+            token: serializedToken || null,
+        };
     } catch (error) {
-        return null;
+        console.error("Failed to load auth state from localStorage:", error);
+        return { user: null, token: null };
     }
 };
 
 const initialState = {
-    user: loadUserFromLocalStorage(),
+    user: loadAuthFromLocalStorage().user,
+    token: loadAuthFromLocalStorage().token,
 };
 
 const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        setUser: (state, action) => { 
-            state.user = action.payload; // ✅ Directly setting user object
-            localStorage.setItem("user", JSON.stringify(action.payload)); 
+        setUser: (state, action) => {
+            state.user = action.payload.user;
+            state.token = action.payload.token;
+            localStorage.setItem("user", JSON.stringify(action.payload.user));
+            localStorage.setItem("token", action.payload.token || "");
         },
         logout: (state) => {
             state.user = null;
+            state.token = null;
             localStorage.removeItem("user");
-        }
-    }
+            localStorage.removeItem("token");
+        },
+    },
 });
 
 export const { setUser, logout } = authSlice.actions;

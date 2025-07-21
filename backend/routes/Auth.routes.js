@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, verifyemail, login, forgotPassword, resetPassword } from '../controllers/Auth.js';
+import { register, verifyemail, login, forgotPassword, resetPassword, logout, getUser, editProfile } from '../controllers/Auth.js';
 import multer from 'multer';
 import fs from 'fs';
 
@@ -24,7 +24,10 @@ const upload = multer({ storage });
 AuthRoutes.post('/register', upload.single('profileImage'), register);
 AuthRoutes.post('/verifyemail', verifyemail);
 AuthRoutes.post('/login', login);
-AuthRoutes.post('/forgot-password', forgotPassword); // New route
-AuthRoutes.post('/reset-password', resetPassword);   // New route
+AuthRoutes.post('/forgot-password', forgotPassword);
+AuthRoutes.post('/reset-password', resetPassword);
+AuthRoutes.post('/logout', logout);
+AuthRoutes.get('/users', getUser); // New route for fetching user data
+AuthRoutes.patch('/edit-profile', editProfile); // New route for updating user data
 
 export default AuthRoutes;

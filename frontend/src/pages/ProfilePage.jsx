@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
 import "./ProfilePage.css";
+import { useGetUserQuery, useEditProfileMutation } from "../redux/features/auth/authApi";
+import { useSelector } from "react-redux";
 
 const ProfilePage = () => {
   const [activeSession, setActiveSession] = useState(null);
@@ -10,7 +12,38 @@ const ProfilePage = () => {
   const [completedSessions, setCompletedSessions] = useState([]);
   const [averageScores, setAverageScores] = useState({});
   const [overallAverage, setOverallAverage] = useState("N/A");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    mobileNumber: "", // Stores the 10-digit number without +91
+  });
+  const [updateError, setUpdateError] = useState("");
   const navigate = useNavigate();
+
+  // Fetch user data from the database
+  const { data: userData, error: fetchError, isLoading: isFetching } = useGetUserQuery();
+  const [editProfile, { isLoading: isUpdating, error: updateApiError }] = useEditProfileMutation();
+
+  // Get token from Redux state to display profile image if available
+  const { token } = useSelector((state) => state.auth);
+
+  // Populate form with fetched user data
+  useEffect(() => {
+    if (userData?.user) {
+      const { name, email, mobileNumber } = userData.user;
+      // Extract the 10-digit number after +91
+      const mobileWithoutPrefix = mobileNumber.startsWith("+91")
+        ? mobileNumber.slice(3)
+        : mobileNumber;
+      setFormData({
+        name: name || "",
+        email: email || "",
+        password: "", // Password is not fetched for security; user must enter it to update
+        mobileNumber: mobileWithoutPrefix || "",
+      });
+    }
+  }, [userData]);
 
   const formatTimer = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -24,10 +57,8 @@ const ProfilePage = () => {
   useEffect(() => {
     const updateSessions = () => {
       try {
-        const scheduledData =
-          localStorage.getItem("scheduledSessions") || "[]";
-        const completedData =
-          localStorage.getItem("completedSessions") || "[]";
+        const scheduledData = localStorage.getItem("scheduledSessions") || "[]";
+        const completedData = localStorage.getItem("completedSessions") || "[]";
         const activeData = localStorage.getItem("activeSession") || "null";
 
         const parsedScheduled = JSON.parse(scheduledData);
@@ -128,9 +159,134 @@ const ProfilePage = () => {
     ];
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "mobileNumber") {
+      // Allow only digits and limit to 10 digits
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+      setFormData({ ...formData, [name]: digitsOnly });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setUpdateError("");
+
+    // Validate mobile number
+    if (formData.mobileNumber.length !== 10) {
+      setUpdateError("Mobile number must be exactly 10 digits");
+      return;
+    }
+
+    // Prepare data to send to the backend
+    const updatedData = {
+      name: formData.name,
+      email: formData.email,
+      mobileNumber: `+91${formData.mobileNumber}`, // Prepend +91
+    };
+
+    // Only include password if the user entered a new one
+    if (formData.password) {
+      updatedData.password = formData.password;
+    }
+
+    try {
+      await editProfile(updatedData).unwrap();
+      // Optionally, you can update the local state or Redux state here
+      alert("Profile updated successfully!");
+    } catch (error) {
+      setUpdateError(error.data?.message || "Failed to update profile");
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard">
+        <div className="profile-header-card">
+          <div className="profile-info">
+            <img
+              className="profile-image"
+              src={
+                userData?.user?.profileImage
+                  ? `http://localhost:5000/uploads/${userData.user.profileImage}`
+                  : "https://via.placeholder.com/80"
+              }
+              alt="Profile"
+            />
+            <div className="profile-text">
+              <h2>{userData?.user?.name || "User"}</h2>
+              <p>{userData?.user?.email || "email@example.com"}</p>
+            </div>
+          </div>
+
+          <div className="profile-form">
+            {fetchError && <p style={{ color: "red" }}>{fetchError.data?.message || "Failed to load profile"}</p>}
+            {updateError && <p style={{ color: "red" }}>{updateError}</p>}
+            {isFetching ? (
+              <p>Loading profile...</p>
+            ) : (
+              <form onSubmit={handleUpdate}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Username</label>
+                    <input id="width-500"
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Your Name"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input id="width-500"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Your Email"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Password (Leave blank to keep unchanged)</label>
+                    <input id="width-500"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="New Password"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Mobile Number</label>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <input id="width-500"
+                        type="text"
+                        name="mobileNumber"
+                        value={formData.mobileNumber}
+                        onChange={handleChange}
+                        placeholder="Enter 10-digit number"
+                        maxLength="10"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="form-buttons">
+                  <button className="btn update" type="submit" disabled={isUpdating}>
+                    {isUpdating ? "Updating..." : "Update"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
 
         <div className="overall-performance-section">
           <h3>Overall Performance of Completed Sessions</h3>
@@ -189,7 +345,7 @@ const ProfilePage = () => {
           {activeSession ? (
             <div className="stats-grid">
               <div className="stat-card">
-                <h4>{activeSession.duration}h</h4>
+                <h4>{activeSession.duration}</h4>
                 <p>{activeSession.topic} — {activeSession.date}</p>
                 <p><strong>Average Quiz Score:</strong> {averageScores[activeSession.id] || "0"}%</p>
               </div>
@@ -205,8 +361,8 @@ const ProfilePage = () => {
             scheduledSessions.map((session) => (
               <div className="task-card" key={session.id}>
                 <h4>{session.topic}</h4>
-                <p>{session.date} - {session.duration}h</p>
-                <p><strong>Average Score:</strong> {averageScores[session.id] || "N/A"}%</p>
+                <p>{session.date} - {session.duration}</p>
+                <p><strong>Average Score:</strong> {averageScores[session.id] || "0"}%</p>
               </div>
             ))
           ) : (
@@ -232,7 +388,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="session-details">
                       <p><strong>Date:</strong> {session.date}</p>
-                      <p><strong>Duration:</strong> {session.duration}h</p>
+                      <p><strong>Duration:</strong> {session.duration}</p>
                       <p><strong>Time Spent:</strong> {formatTimer(session.completedTime || 0)}</p>
                     </div>
                     {sessionScores.length > 0 && (

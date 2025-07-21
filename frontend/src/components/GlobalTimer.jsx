@@ -1,8 +1,21 @@
 import { useEffect } from "react";
 import { toast } from "react-toastify";
+import { useGetUserQuery } from "../redux/features/auth/authApi";
 
 const GlobalTimer = () => {
+  // Fetch user data from the database
+  const { data: userData, error: fetchError } = useGetUserQuery();
+  const userPhoneNumber = userData?.user?.mobileNumber || "N/A"; // Fallback number if fetch fails
+
+  // Current date and time (May 15, 2025, 10:59 PM IST)
+  const currentDateTime = new Date("2025-05-15T22:59:00+05:30");
+
   useEffect(() => {
+    if (fetchError) {
+      console.error("Error fetching user data:", fetchError);
+      toast.error("Failed to load user data for SMS notifications.");
+    }
+
     const interval = setInterval(() => {
       const sessions = JSON.parse(localStorage.getItem("scheduledSessions")) || [];
       const timers = JSON.parse(localStorage.getItem("sessionTimers")) || {};
@@ -34,20 +47,38 @@ const GlobalTimer = () => {
           };
           playSound();
 
-          const sendSMS = async (message) => {
+          const sendSMS = async (message, sessionDate) => {
+            // Parse the session date and time
+            const sessionDateTime = sessionDate && !isNaN(new Date(sessionDate)) ? new Date(sessionDate) : null;
+
+            // Compare the session date-time with the current date-time
+            // Allow SMS only if the session is scheduled for the current date and time (within a 1-minute window)
+            if (sessionDateTime) {
+              const timeDiff = Math.abs(sessionDateTime.getTime() - currentDateTime.getTime());
+              const minutesDiff = timeDiff / (1000 * 60);
+              if (minutesDiff > 1) {
+                console.log(
+                  `SMS not sent for message "${message}". Session time (${sessionDateTime.toISOString()}) does not match current time (${currentDateTime.toISOString()}).`
+                );
+                return;
+              }
+            }
+
             try {
               const response = await fetch("http://localhost:5000/send-sms", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message, toPhoneNumber: "+919381890586" }),
+                body: JSON.stringify({ message, toPhoneNumber: userPhoneNumber }),
               });
               if (!response.ok) throw new Error("Failed to send SMS");
               console.log("SMS sent:", await response.json());
+              toast.success("SMS notification sent!");
             } catch (error) {
               console.error("Error sending SMS:", error);
+              toast.error("Failed to send SMS notification.");
             }
           };
-          sendSMS(`Session '${topic}' ended!`);
+          sendSMS(`Session '${topic}' ended!`, session.date);
 
           const completedSessions = JSON.parse(localStorage.getItem("completedSessions")) || [];
           if (!completedSessions.some((s) => s.id === session.id)) {
@@ -77,7 +108,7 @@ const GlobalTimer = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [userPhoneNumber]); // Re-run effect if userPhoneNumber changes
 
   return null;
 };

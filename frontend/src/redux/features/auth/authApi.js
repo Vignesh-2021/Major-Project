@@ -4,10 +4,16 @@ import { getBaseUrl } from "../../../utils/baseURL";
 const authApi = createApi({
     reducerPath: 'authApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${getBaseUrl()}/api/auth`,
-        credentials: 'include',
+        baseUrl: `${getBaseUrl()}/auth`, // Fixed to match backend route
+        prepareHeaders: (headers, { getState }) => {
+            const token = getState().auth.token; // Assumes token is stored in Redux state
+            if (token) {
+                headers.set('Authorization', `Bearer ${token}`);
+            }
+            return headers;
+        },
     }),
-    tagTypes: ["User"], // ✅ Added tagTypes to enable caching
+    tagTypes: ["User"],
     endpoints: (builder) => ({
         registerUser: builder.mutation({
             query: (newUser) => ({
@@ -23,7 +29,7 @@ const authApi = createApi({
                 method: "POST",
                 body: credentials
             }),
-            invalidatesTags: ["User"], // ✅ Invalidate cache after login
+            invalidatesTags: ["User"],
         }),
 
         logoutUser: builder.mutation({
@@ -31,32 +37,32 @@ const authApi = createApi({
                 url: "/logout",
                 method: "POST"
             }),
-            invalidatesTags: ["User"], // ✅ Invalidate cache after logout
+            invalidatesTags: ["User"],
         }),
 
         getUser: builder.query({
             query: () => ({
-                url: "/users",  // ✅ Ensure this is the correct API endpoint
+                url: "/users", // Note: Backend endpoint not implemented yet
                 method: "GET"
             }),
-            providesTags: ["User"], // ✅ Now Redux knows to fetch fresh data when needed
+            providesTags: ["User"],
         }),
 
         deleteUser: builder.mutation({
             query: (userId) => ({
-                url: `/users/${userId}`,
+                url: `/users/${userId}`, // Note: Backend endpoint not implemented yet
                 method: "DELETE",
             }),
             invalidatesTags: ["User"],
         }),
 
-        editProfile: builder.mutation({ // ✅ Fixed typo from `editProfle`
+        editProfile: builder.mutation({
             query: (profileData) => ({
-                url: "/edit-profile",
+                url: "/edit-profile", // Note: Backend endpoint not implemented yet
                 method: "PATCH",
                 body: profileData
             }),
-            invalidatesTags: ["User"], // ✅ Ensure UI updates after profile edit
+            invalidatesTags: ["User"],
         }),
     }),
 });
@@ -67,7 +73,7 @@ export const {
     useLogoutUserMutation, 
     useGetUserQuery, 
     useDeleteUserMutation, 
-    useEditProfileMutation // ✅ Fixed
+    useEditProfileMutation 
 } = authApi;
 
 export default authApi;

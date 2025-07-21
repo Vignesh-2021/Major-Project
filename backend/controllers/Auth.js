@@ -2,8 +2,8 @@ import { SendVerificationCode, WelcomeEmail } from "../middleware/Email.js";
 import { Usermodel } from "../models/User.js";
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Reset_Email_Template } from "../libs/ResetEmailTemplate.js"; // New import
-import { transporter } from "../middleware/Email.config.js"; // Import transporter
+import { Reset_Email_Template } from "../libs/ResetEmailTemplate.js";
+import { transporter } from "../middleware/Email.config.js";
 
 const register = async (req, res) => {
     try {
@@ -19,7 +19,20 @@ const register = async (req, res) => {
             return res.status(400).json({ success: false, message: "User Already Exists. Please Login" });
         }
 
-        const ExistsMobile = await Usermodel.findOne({ mobileNumber });
+        // Validate and format mobile number
+        let formattedMobileNumber = mobileNumber.trim();
+        formattedMobileNumber = formattedMobileNumber.replace(/[^+\d]/g, '');
+        if (!formattedMobileNumber.startsWith('+91')) {
+            if (formattedMobileNumber.startsWith('+')) {
+                formattedMobileNumber = formattedMobileNumber.slice(1);
+            }
+            formattedMobileNumber = '+91' + formattedMobileNumber;
+        }
+        if (formattedMobileNumber.length !== 13 || !/^\+91\d{10}$/.test(formattedMobileNumber)) {
+            return res.status(400).json({ success: false, message: "Mobile number must be a valid 10-digit number" });
+        }
+
+        const ExistsMobile = await Usermodel.findOne({ mobileNumber: formattedMobileNumber });
         if (ExistsMobile) {
             return res.status(400).json({ success: false, message: "Mobile number already in use" });
         }
@@ -31,7 +44,7 @@ const register = async (req, res) => {
             email,
             password: hashedPassword,
             name,
-            mobileNumber,
+            mobileNumber: formattedMobileNumber,
             profileImage,
             verificationToken
         });
@@ -140,13 +153,12 @@ const forgotPassword = async (req, res) => {
         }
 
         const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-        const resetTokenExpiresAt = Date.now() + 3600000; // 1 hour expiry
+        const resetTokenExpiresAt = Date.now() + 3600000;
 
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpiresAt = resetTokenExpiresAt;
         await user.save();
 
-        // Send reset token via email using the imported template
         await transporter.sendMail({
             from: '"StudyBuddy" <mkviggu@gmail.com>',
             to: email,
@@ -190,4 +202,120 @@ const resetPassword = async (req, res) => {
     }
 };
 
-export { register, verifyemail, login, forgotPassword, resetPassword };
+const logout = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'yoursecretkey');
+
+        const user = await Usermodel.findById(decoded.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        user.lastLogin = Date.now();
+        await user.save();
+
+        return res.status(200).json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const getUser = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'yoursecretkey');
+
+        const user = await Usermodel.findById(decoded.userId).select('-password'); // Exclude password
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        return res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const editProfile = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'yoursecretkey');
+
+        const user = await Usermodel.findById(decoded.userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const { name, email, mobileNumber, password } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !mobileNumber) {
+            return res.status(400).json({ success: false, message: "Name, email, and mobile number are required" });
+        }
+
+        // Validate email uniqueness
+        const existingEmailUser = await Usermodel.findOne({ email });
+        if (existingEmailUser && existingEmailUser._id.toString() !== user._id.toString()) {
+            return res.status(400).json({ success: false, message: "Email already in use by another user" });
+        }
+
+        // Validate and format mobile number
+        let formattedMobileNumber = mobileNumber.trim();
+        formattedMobileNumber = formattedMobileNumber.replace(/[^+\d]/g, '');
+        if (!formattedMobileNumber.startsWith('+91')) {
+            if (formattedMobileNumber.startsWith('+')) {
+                formattedMobileNumber = formattedMobileNumber.slice(1);
+            }
+            formattedMobileNumber = '+91' + formattedMobileNumber;
+        }
+        if (formattedMobileNumber.length !== 13 || !/^\+91\d{10}$/.test(formattedMobileNumber)) {
+            return res.status(400).json({ success: false, message: "Mobile number must be a valid 10-digit number" });
+        }
+
+        // Validate mobile number uniqueness
+        const existingMobileUser = await Usermodel.findOne({ mobileNumber: formattedMobileNumber });
+        if (existingMobileUser && existingMobileUser._id.toString() !== user._id.toString()) {
+            return res.status(400).json({ success: false, message: "Mobile number already in use by another user" });
+        }
+
+        // Update user fields
+        user.name = name;
+        user.email = email;
+        user.mobileNumber = formattedMobileNumber;
+
+        // Update password if provided
+        if (password) {
+            const hashedPassword = await bcryptjs.hashSync(password, 10);
+            user.password = hashedPassword;
+        }
+
+        await user.save();
+
+        // Return updated user data (excluding password)
+        const updatedUser = await Usermodel.findById(user._id).select('-password');
+        return res.status(200).json({ success: true, user: updatedUser, message: "Profile updated successfully" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export { register, verifyemail, login, forgotPassword, resetPassword, logout, getUser, editProfile };
